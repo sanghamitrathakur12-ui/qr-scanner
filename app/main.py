@@ -12,7 +12,7 @@ os.makedirs(QR_DIR, exist_ok=True)
 
 url_store = {}
 
-PUBLIC_BASE_URL = PUBLIC_BASE_URL = "https://your-app-name.onrender.com"  # later replace with domain
+PUBLIC_BASE_URL = PUBLIC_BASE_URL = "https://qr-scanner-lb6j.onrender.com"  # later replace with domain
 
 @app.get("/")
 def root():
