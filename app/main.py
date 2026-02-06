@@ -1,54 +1,72 @@
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import RedirectResponse
-import validators
+from fastapi import FastAPI
 import qrcode
 import os
-import uuid
+from fastapi.responses import FileResponse
+from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
 QR_DIR = "qrcodes"
 os.makedirs(QR_DIR, exist_ok=True)
 
-url_store = {}
-
-PUBLIC_BASE_URL = PUBLIC_BASE_URL = "https://qr-scanner-lb6j.onrender.com"  # later replace with domain
-
 @app.get("/")
 def root():
     return {"status": "API is running"}
 
-@app.get("/analyze")
-def analyze_and_generate_qr(url: str = Query(...)):
+@app.get("/qr")
+def generate_qr():
+    target_url = "https://qr-scanner-lb6j.onrender.com"
+    qr_path = f"{QR_DIR}/root_qr.png"
 
-    if not validators.url(url):
-        raise HTTPException(status_code=400, detail="Invalid URL")
-
-    qr_id = str(uuid.uuid4())
-
-    # store mapping
-    url_store[qr_id] = url
-
-    # QR will point to YOUR scan URL
-    scan_url = f"{PUBLIC_BASE_URL}/scan/{qr_id}"
-
-    qr_path = f"{QR_DIR}/{qr_id}.png"
-    qr = qrcode.make(scan_url)
+    qr = qrcode.make(target_url)
     qr.save(qr_path)
 
     return {
-        "message": "QR generated",
-        "scan_url": scan_url,
-        "final_destination": url,
-        "qr_id": qr_id,
+        "message": "QR code generated",
+        "scan_url": target_url,
         "qr_image": qr_path
     }
 
-@app.get("/scan/{qr_id}")
-def scan_qr(qr_id: str):
+@app.get("/qr/view")
+def view_qr():
+    return FileResponse("qrcodes/root_qr.png", media_type="image/png")
 
-    if qr_id not in url_store:
-        raise HTTPException(status_code=404, detail="Invalid QR")
-
-    final_url = url_store[qr_id]
-    return RedirectResponse(url=final_url)
+@app.get("/qr/page", response_class=HTMLResponse)
+def qr_page():
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>QR Code</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background: #f4f6f8;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+            .card {
+                background: white;
+                padding: 30px;
+                border-radius: 12px;
+                text-align: center;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            }
+            img {
+                width: 250px;
+                margin-top: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h2>Scan the QR Code</h2>
+            <p>This QR redirects to the API root endpoint</p>
+            <img src="/qr/view" alt="QR Code">
+            <p><small>Scanning opens https://qr-scanner.onrender.com/</small></p>
+        </div>
+    </body>
+    </html>
+    """
