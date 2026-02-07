@@ -90,6 +90,23 @@ def root():
                 box-shadow: 0 10px 25px rgba(0, 114, 255, 0.4);
             }
 
+            @media (max-width: 480px) {
+                .btn {
+                    font-size: 15px;
+                    padding: 16px 20px;
+                    max-width: 100%;
+                    border-radius: 24px;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .btn {
+                    font-size: 16px;
+                    padding: 15px 24px;
+                    max-width: 100%;
+                }
+            }
+
             .btn:hover {
                 transform: translateY(-2px);
                 box-shadow: 0 15px 30px rgba(0, 114, 255, 0.6);
