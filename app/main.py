@@ -10,6 +10,7 @@ app = FastAPI()
 
 QR_DIR = "qrcodes"
 os.makedirs(QR_DIR, exist_ok=True)
+DEFAULT_TARGET_URL = "https://qr-scanner-lb6j.onrender.com"
 
 @app.get("/", response_class=HTMLResponse)
 def root():
@@ -205,8 +206,6 @@ def generate_default_qr():
 @app.get("/qr/view")
 def view_qr():
     return FileResponse("qrcodes/root_qr.png", media_type="image/png")
-
-DEFAULT_TARGET_URL = "https://qr-scanner.onrender.com/"
 
 @app.get("/qr/page", response_class=HTMLResponse)
 def qr_page(url: str | None = Query(default=None)):
