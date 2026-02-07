@@ -9,9 +9,13 @@ app = FastAPI()
 QR_DIR = "qrcodes"
 os.makedirs(QR_DIR, exist_ok=True)
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def root():
-    return {"status": "API is running"}
+    return """
+    <h2>QR Scanner API</h2>
+    <p>Open the QR page:</p>
+    <a href="/qr/page">Go to QR Page</a>
+    """
 
 @app.get("/qr")
 def generate_qr():
