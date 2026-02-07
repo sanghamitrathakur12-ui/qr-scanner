@@ -3,6 +3,8 @@ import qrcode
 import os
 from fastapi.responses import FileResponse
 from fastapi.responses import HTMLResponse
+from fastapi import Query
+from fastapi.responses import RedirectResponse
 
 app = FastAPI()
 
@@ -78,6 +80,33 @@ def root():
                 gap: 14px;
             }
 
+            .form-input {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+                margin-top: 10px;
+            }
+
+            /* URL input */
+            .form-input input {
+                width: 100%;
+                padding: 14px 16px;
+                border-radius: 12px;
+                border: none;
+                outline: none;
+                font-size: 15px;
+                background: rgba(255, 255, 255, 0.9);
+                color: #333;
+                transition: box-shadow 0.2s ease, transform 0.1s ease;
+            }
+
+            @media (max-width: 480px) {
+                .form-input input {
+                    padding: 16px;
+                    font-size: 14px;
+                }
+            }
+
             .btn {
                 display: inline-block;
                 padding: 14px 26px;
@@ -94,6 +123,7 @@ def root():
                 .btn {
                     font-size: 15px;
                     padding: 16px 20px;
+                    margin-bottom: 10px;
                     max-width: 100%;
                     border-radius: 24px;
                 }
@@ -137,13 +167,20 @@ def root():
                 to public URLs using a FastAPI backend.
             </p>
 
-            <div class="actions">
-                <!-- Generate QR -->
-                <a href="/qr" class="btn">Generate QR</a>
+           <div class="actions">
+                <form action="/qr/page" method="get" class="form-input">
+                    <input 
+                        type="url" 
+                        name="url" 
+                        placeholder="https://example.com (optional)" 
+                    />
+                    <button type="submit" class="btn">Generate QR</button>
+                </form>
 
-                <!-- Open QR Page -->
-                <a href="/qr/page" class="btn secondary">Open QR Page</a>
+                <!-- Generate QR (default target URL) -->
+                <a href="/qr" class="btn">Generate Default QR</a>
             </div>
+
 
             <div class="footer">
                 Powered by FastAPI • Public QR Redirect System
@@ -154,25 +191,32 @@ def root():
     """
 
 @app.get("/qr")
-def generate_qr():
-    target_url = "https://qr-scanner-lb6j.onrender.com"
-    qr_path = f"{QR_DIR}/root_qr.png"
+def generate_default_qr():
+    target_url = DEFAULT_TARGET_URL
 
+    qr_path = f"{QR_DIR}/root_qr.png"
     qr = qrcode.make(target_url)
     qr.save(qr_path)
 
-    return {
-        "message": "QR code generated",
-        "scan_url": target_url,
-        "qr_image": qr_path
-    }
+    # 🔁 Redirect directly to QR page
+    return RedirectResponse(url="/qr/page")
+
 
 @app.get("/qr/view")
 def view_qr():
     return FileResponse("qrcodes/root_qr.png", media_type="image/png")
 
+DEFAULT_TARGET_URL = "https://qr-scanner.onrender.com/"
+
 @app.get("/qr/page", response_class=HTMLResponse)
-def qr_page():
+def qr_page(url: str | None = Query(default=None)):
+
+    final_url = url if url else DEFAULT_TARGET_URL
+
+    qr_path = f"{QR_DIR}/root_qr.png"
+    qr = qrcode.make(final_url)
+    qr.save(qr_path)
+
     return """
     <!DOCTYPE html>
     <html lang="en">
