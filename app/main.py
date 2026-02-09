@@ -1,7 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 import qrcode
 import os
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.responses import HTMLResponse
 from fastapi import Query
 from fastapi.responses import RedirectResponse
@@ -13,7 +13,16 @@ os.makedirs(QR_DIR, exist_ok=True)
 DEFAULT_TARGET_URL = "https://qr-scanner-lb6j.onrender.com"
 
 @app.get("/", response_class=HTMLResponse)
-def root():
+def root(request: Request):
+    accept = request.headers.get("accept", "")
+
+    # Postman / CLI tools → TEXT
+    if "text/plain" in accept:
+        return PlainTextResponse(
+            "QR Scanner API is running.\n"
+            "Use /qr to generate default QR.\n"
+            "Use /qr/page to view QR."
+        )
     return """
     <!DOCTYPE html>
     <html lang="en">
